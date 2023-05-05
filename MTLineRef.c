@@ -8,12 +8,12 @@
 **
 ** Author: L. Johnson,
 ** Created: 03 Apr 23
-** Current Version: 1.0
+** Current Version: 1.1
 ***********************************************************************
 **  Revision   Date       Engineer       Description of Change
 **  --------   --------   ------------   ------------------------------
 **  1.0        9 Apr 23   L. Johnson     Initial Release 
-                                  
+**  1.1        5 May 23   L. Johnson     Address Cntl-Z problem & other issues                                  
 **********************************************************************/
 #define TRUE  1
 #define FALSE 0
@@ -76,7 +76,7 @@ FILE  *fi, *fo;
   lnStruct ln[5000];  // Line structure
 
 
-  printf("MTLineRef - Version 1.0\n");
+  printf("MTLineRef - Version 1.1\n");
 
 
   printf("Enter input file name: ");
@@ -102,10 +102,17 @@ FILE  *fi, *fo;
 // 
   done=0;
   while (done == 0) {
-    if (fgets(str_in,256,fi) != NULL){
+
+    if (fgets(str_in,256,fi) == NULL) done=1;
+    if (strlen(str_in)<3) done=1; // nothing much in this line so we quit
+    if (str_in[0]==26) done=1;  // A control-Z as the 1st char will terminate this input file
+    if (done==0) {
       // Remove trailing carriage return & linefeed
-      while ((str_in[strlen(str_in)-1]==13) ||
-        (str_in[strlen(str_in)-1]==10) ) str_in[strlen(str_in)-1]=0;
+      // Remove carriage return & linefeed
+      los=strlen(str_in);  // length of input string
+      for (j=0;j<los;j++) {
+        if((str_in[j]==13) ||(str_in[j]==10)) str_in[j]=0;
+      }
       los=strlen(str_in);  // length of input string
       ns=sscanf(str_in,"%d %s",&lval, ln_str);
       ln[li].val=lval;
@@ -264,7 +271,13 @@ FILE  *fi, *fo;
       } //for (p2i=0;p2i<strlen(wrk_str);p2i++) {
       if (scrOut==1)  printf("%d ",lval);
       strcpy(tmpstr,wrk_str);
-      if (strlen(tmpstr)<10) strcat(tmpstr,"          ");
+      if (strlen(tmpstr)<10) {
+          strcat(tmpstr,"          ");
+        // *DEBUG*  
+        // for (j=0;j<strlen(tmpstr);j++) printf("%d ",tmpstr[j]);
+          //  printf("%s \n", tmpstr);
+         // cont();
+      }
       tmpstr[10]=0;  // Terminate the string
       strcpy(ln[li].ln10ch, tmpstr);
       if (scrOut==1)  printf("%s ",ln[li].ln10ch);
